@@ -1,10 +1,50 @@
 import {useState} from 'react'
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
 export default function FileUpload() {
     const [selectedFile, setSelectedFile] = useState(null)
+    const [name,setName] = useState('')
+
+    const handleNameChange = (e) => {
+        setName(e.target.value)
+    }
 
     const handleFileChange = (e) => {
         setSelectedFile(e.target.files[0])
+    }
+
+    async function uploadData() {
+        if (!selectedFile) {
+            alert("Please select a file to upload")
+            return
+        }
+
+        const formData = new FormData()
+        formData.append('file', selectedFile)
+        
+        if (name.trim()) {
+            formData.append('newName', name.trim())
+        }
+
+        try {
+            const response = await fetch(`${BACKEND_URL}/upload`, {
+                method: 'POST',
+                body: formData,
+            })
+
+            const data = await response.json()
+            
+            if (response.ok) {
+                alert('File uploaded successfully!')
+                setSelectedFile(null)
+                setName('')
+            } else {
+                throw new Error(data.error || 'Upload failed')
+            }
+        } catch (error) {
+            alert('Error uploading file: ' + error.message)
+        }
     }
 
     return <>
@@ -30,9 +70,24 @@ export default function FileUpload() {
                             accept="image/*"
                         />
                     </label>
+
+                    
                 </div>
+
+                <div>
+                    <input 
+                        type="text" 
+                        placeholder='Set a name' 
+                        className='placeholder:text-center border-1 p-2 rounded-md'
+                        onChange={handleNameChange}
+                        value={name}
+                    />
+                </div>
+
                 <div className='pt-5'>
-                    <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors'>
+                    <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors'
+                            onClick={uploadData}
+                    >
                         Upload
                     </button>
                 </div>
