@@ -4,6 +4,8 @@ import './App.css'
 import Nav from './components/nav'
 import Files from './components/files'
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+
 function Layout() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -21,8 +23,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route element={<Layout />}>
-            <Route path="/" element={<FileUpload />} />
-            <Route path="/files" element={<Files />} />
+            <Route path="/" element={<FileUpload backendUrl={BACKEND_URL} />} />
+            <Route path="/files" element={<Files backendUrl={BACKEND_URL} />} />
           </Route>
         </Routes>
       </BrowserRouter>

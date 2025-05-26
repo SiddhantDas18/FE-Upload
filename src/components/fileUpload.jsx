@@ -1,97 +1,67 @@
-import {useState} from 'react'
+import { useState } from 'react'
+import axios from 'axios'
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-
-export default function FileUpload() {
-    const [selectedFile, setSelectedFile] = useState(null)
-    const [name,setName] = useState('')
-
-    const handleNameChange = (e) => {
-        setName(e.target.value)
-    }
+export default function FileUpload({ onUploadSuccess, backendUrl }) {
+    const [file, setFile] = useState(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
 
     const handleFileChange = (e) => {
-        setSelectedFile(e.target.files[0])
+        setFile(e.target.files[0])
+        setError('')
     }
 
-    async function uploadData() {
-        if (!selectedFile) {
-            alert("Please select a file to upload")
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        if (!file) {
+            setError('Please select a file')
             return
         }
 
+        setLoading(true)
         const formData = new FormData()
-        formData.append('file', selectedFile)
-        
-        if (name.trim()) {
-            formData.append('newName', name.trim())
-        }
+        formData.append('file', file)
 
         try {
-            const response = await fetch(`${BACKEND_URL}/upload`, {
-                method: 'POST',
-                body: formData,
-            })
-
-            const data = await response.json()
-            
-            if (response.ok) {
-                alert('File uploaded successfully!')
-                setSelectedFile(null)
-                setName('')
-            } else {
-                throw new Error(data.error || 'Upload failed')
+            const response = await axios.post(`${backendUrl}/upload`, formData)
+            setFile(null)
+            if (onUploadSuccess) {
+                onUploadSuccess(response.data)
             }
         } catch (error) {
-            alert('Error uploading file: ' + error.message)
+            setError(error.response?.data?.error || 'Error uploading file')
+        } finally {
+            setLoading(false)
         }
     }
 
-    return <>
-        <div>
-            <div className='h-screen w-screen flex flex-col justify-center items-center'>
-                <h1 className='text-2xl font-bold mb-6'>Upload your file</h1>
-                <div className='flex flex-col justify-center text-center items-center border-2 border-dashed border-gray-300 rounded-lg p-8 m-3 w-96 hover:border-blue-500 transition-colors'>
-                    <label className='cursor-pointer'>
-                        <div className='flex flex-col items-center'>
-                            <svg className="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                            </svg>
-                            <p className='mb-2 text-sm text-gray-500'><span className='font-semibold'>Click to upload</span> or drag and drop</p>
-                            <p className='text-xs text-gray-500'>PNG, JPG or GIF (MAX. 800x400px)</p>
-                            {selectedFile && (
-                                <p className='mt-2 text-sm text-blue-600'>{selectedFile.name}</p>
-                            )}
-                        </div>
-                        <input 
-                            type="file" 
-                            className='hidden' 
-                            onChange={handleFileChange}
-                            accept="image/*"
-                        />
-                    </label>
-
-                    
-                </div>
-
-                <div>
-                    <input 
-                        type="text" 
-                        placeholder='Set a name' 
-                        className='placeholder:text-center border-1 p-2 rounded-md'
-                        onChange={handleNameChange}
-                        value={name}
-                    />
-                </div>
-
-                <div className='pt-5'>
-                    <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors'
-                            onClick={uploadData}
-                    >
-                        Upload
-                    </button>
-                </div>
-            </div>
+    return (
+        <div style={{ maxWidth: '500px', margin: '20px auto', padding: '20px' }}>
+            <form onSubmit={handleSubmit}>
+                <input 
+                    type="file" 
+                    onChange={handleFileChange}
+                    style={{ marginBottom: '10px' }}
+                />
+                {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+                <button 
+                    type="submit" 
+                    disabled={loading}
+                    style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '10px',
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        opacity: loading ? 0.7 : 1,
+                        cursor: loading ? 'not-allowed' : 'pointer'
+                    }}
+                >
+                    {loading ? 'Uploading...' : 'Upload File'}
+                </button>
+            </form>
         </div>
-    </>
+    )
 }
