@@ -25,13 +25,15 @@ export default function Files({ backendUrl, onDelete }) {
                 setFiles(data.map(file => ({
                     ...file,
                     name: file.filename || file.name,
-                    previewUrl: `${backendUrl}/upload/files/${file.filename || file.name}`
+                    
+                    previewUrl: `${backendUrl}/${file.filename || file.name}`
                 })))
             } else if (data.files) {
                 setFiles(data.files.map(file => ({
                     ...file,
                     name: file.name,
-                    previewUrl: `${backendUrl}/upload/files/${file.name}`
+                    
+                    previewUrl: `${backendUrl}/${file.name}`
                 })))
             } else {
                 setFiles([])
@@ -85,7 +87,7 @@ export default function Files({ backendUrl, onDelete }) {
                                             alt={file.name}
                                             className="w-24 h-24 object-cover rounded"
                                             onError={(e) => {
-                                                console.error('Image failed to load:', file.name)
+                                                console.error('Image failed to load:', file.name, 'URL:', file.previewUrl)
                                                 e.target.src = 'https://via.placeholder.com/150?text=No+Preview'
                                             }}
                                         />
